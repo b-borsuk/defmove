@@ -1,0 +1,35 @@
+{
+  "name": "defmove",
+  "version": "1.0.0",
+  "description": "",
+  "main": "doppler.js",
+  "dependencies": {
+    "babel": "^6.5.2",
+    "babel-cli": "^6.9.0",
+    "babel-core": "^6.9.1",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-react": "^6.5.0",
+    "babel-preset-stage-0": "^6.5.0",
+    "expose-loader": "^0.7.1",
+    "jquery": "^2.2.4",
+    "local-web-server": "^1.2.5",
+    "lodash": "^4.13.1",
+    "path": "^0.12.7",
+    "webpack": "^1.13.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "webpack --config webpack.config.dev.js --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/likedeamon/defmove.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/likedeamon/defmove/issues"
+  },
+  "homepage": "https://github.com/likedeamon/defmove#readme"
+}

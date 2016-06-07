@@ -1,16 +1,18 @@
-var ctx = new AudioContext();
-var osc = ctx.createOscillator();
-var instrument = ctx.createOscillator();
+import $ from 'jquery';
+
+let audioContext = new AudioContext();
+let oscillator = audioContext.createOscillator();
+let instrument = audioContext.createOscillator();
 // This is just preliminary, we'll actually do a quick scan
 // (as suggested in the paper) to optimize this. (Yes,
 // we're lying in the text, the frequency isn't fixed at 20 kHz
 // for all computers. It can't (shouldn't) be since the
 // output of a 20 kHz tone varies way too much depending
 // on speaker quality and enviorment.)
-var freq = 20000;
-var baseInstrumentFreq = 440;
+const freq = 20000;
+const baseInstrumentFreq = 440;
 // See paper for this particular choice of frequencies
-var relevantFreqWindow = 33;
+const relevantFreqWindow = 33;
 
 // We'll make these global to speed up things
 // up slightly, to avoid querying the DOM at every frame.
@@ -22,7 +24,7 @@ var zoomedSpectrumCanvas = document.getElementById('spectrum-zoom');
 var thereminDemoIsActive = false;
 var scrollDemoIsActive   = false;
 
-var getBandwidth = function(analyser, freqs) {
+const getBandwidth = (analyser, freqs) => {
   var primaryTone = freqToIndex(analyser, window.freq);
   var primaryVolume = freqs[primaryTone];
   // This ratio is totally empirical (aka trial-and-error).
@@ -45,21 +47,21 @@ var getBandwidth = function(analyser, freqs) {
   return [ leftBandwidth, rightBandwidth ];
 };
 
-var clamp = function(val, min, max) {
+const clamp = (val, min, max) => {
   return Math.min(max, Math.max(min, val));
 };
 
-var freqToIndex = function(analyser, freq) {
-  var nyquist = ctx.sampleRate / 2;
+const freqToIndex = (analyser, freq) => {
+  var nyquist = audioContext.sampleRate / 2;
   return Math.round( freq/nyquist * analyser.fftSize/2 );
 };
 
-var indexToFreq = function(analyser, index) {
-  var nyquist = ctx.sampleRate / 2;
-  return nyquist/(analyser.fftSize/2) * index;
+const indexToFreq = (analyser, index) => {
+  var nyquist = audioContext.sampleRate / 2;
+  return nyquist / (analyser.fftSize / 2) * index;
 };
 
-var readMic = function(analyser) {
+var readMic = (analyser) => {
   window.requestAnimationFrame(readMic.bind(null, analyser));
 
   var audioData = new Uint8Array(analyser.frequencyBinCount);
@@ -130,8 +132,8 @@ var optimizeFrequency = function(osc, analyser, freqSweepStart, freqSweepEnd) {
 
 var handleMic = function(stream, callback) {
   // Mic
-  var mic = ctx.createMediaStreamSource(stream);
-  var analyser = ctx.createAnalyser();
+  var mic = audioContext.createMediaStreamSource(stream);
+  var analyser = audioContext.createAnalyser();
 
   analyser.smoothingTimeConstant = 0.5;
   analyser.fftSize = 2048;
@@ -139,19 +141,19 @@ var handleMic = function(stream, callback) {
   mic.connect(analyser);
 
   // Doppler tone
-  var dopplerGain = ctx.createGain();
+  var dopplerGain = audioContext.createGain();
   dopplerGain.gain.value = 1;
-  dopplerGain.connect(ctx.destination);
+  dopplerGain.connect(audioContext.destination);
 
-  osc.frequency.value = window.freq;
-  osc.type = osc.SINE;
-  osc.start(0);
-  osc.connect(dopplerGain);
+  oscillator.frequency.value = window.freq;
+  oscillator.type = oscillator.SINE;
+  oscillator.start(0);
+  oscillator.connect(dopplerGain);
 
   // Instrument
-  var instrumentGain = ctx.createGain();
+  var instrumentGain = audioContext.createGain();
   instrumentGain.gain.value = 0.1;
-  instrumentGain.connect(ctx.destination);
+  instrumentGain.connect(audioContext.destination);
 
   instrument.frequency.value = 0;
   instrument.type = instrument.SQUARE;
@@ -163,8 +165,8 @@ var handleMic = function(stream, callback) {
   // A quick timeout will hopefully decrease that bias effect.
   setTimeout(function() {
     // Optimize doppler tone
-    window.freq = optimizeFrequency(osc, analyser, 19000, 22000);
-    osc.frequency.value = window.freq;
+    window.freq = optimizeFrequency(oscillator, analyser, 19000, 22000);
+    oscillator.frequency.value = window.freq;
 
     callback(analyser);
   });
