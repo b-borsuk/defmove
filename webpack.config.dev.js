@@ -5,8 +5,7 @@ var webpack = require('webpack');
 module.exports = {
     devtool: 'source-map',
     entry : {
-        script: __dirname + '/src/js/script.js',
-        doppler: __dirname + '/src/js/index.js'
+        defmove: __dirname + '/src/js/index.js'
     },
     output: {
         path: __dirname + '/public/js',
@@ -20,8 +19,8 @@ module.exports = {
     module: {
         loaders: [
             {
-                test: require.resolve("./src/js/doppler"),
-                loader: "expose?Dopler"
+                test: require.resolve("./src/js/defmove"),
+                loader: "expose?defmove"
             },
             {
                 test: /\.js/,

@@ -1,57 +1,122 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
-    <style>
-      #box {
-        background-color: #000;
-        width: 100px;
-        height: 100px;
-        margin-top: 100px;
-        margin-left: auto;
-        margin-right: auto;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="s">
-      <p>Ball</p>
-      <canvas id="ball" width="700" height="100"></canvas>
+    <head>
+        <title>DefMove</title>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="public/css/bootstrap.min.css">
+        <link rel="stylesheet" href="public/css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="public/css/bootstrap-slider.min.css">
+        <link rel="stylesheet" href="public/css/slick.css">
+        <link rel="stylesheet" href="public/css/slick-theme.css">
+        <link rel="stylesheet" href="public/css/app.css">
+    </head>
+    <body class="is-open">
+        <div class="c-main">
+            <button class="c-sidebar__btn js-sidebar__open"><img src="public/img/levels.png"></button>
+            <h1 class="text-center mb-lg">Безконтактне керування DefMove</h1>
+            <p>У зв’язку із значним розвитком комп’ютерної індустрії у світі інформаційних технологій з’являється все більше різних способів взаємодії користувача з пристроями. Кожна компанія хоче реалізувати користування її технікою якомога зручніше і першим шляхом до цього є взаємодія людини з пристроєм.</p>
 
-      <div>
-        <p>spectrum</p>
-        <canvas id="spectrum" width="700" height="100"></canvas>
-        <button id="btn-activate" class="pure-button pure-button-primary">Press to see the effect of a 20 kHz tone, after it has bounced around the room</button>
-        <div id="spectrum-axes">
-          <span class="left-axis">0 kHz</span><span class="right-axis">22 kHz</span>
+            <p>Даний веб сайт демонструє програмну реалізацію безконтактного керування веб-сайтом з використанням ефекту Доплера для розпізнання рухів. Здійснення відслідковування руху не вимагає ніякого спеціального обладнання, а тільки вбудованих динаміка і мікрофона.</p>
+
+
+            <h2>Що таке ефект Доплера?</h2>
+            <p>Перш за все, що таке <a href="https://uk.wikipedia.org/wiki/Ефект_Доплера" target="_blank">ефект Доплера</a>? Своєрідні ефекти, які проявляються при взаємному переміщенні джерела і приймача звукових хвиль відносно нерухомого середовища, вперше виявив Доплер в 1842 році. Він звернув увагу на те, що при переміщенні тільки джерела або тільки приймача або при одночасному переміщенні і джерела, і приймача щодо середовища, в якому поширюються звукові хвилі, частота коливань, яка сприймається приймачем, змінюється.</p>
+
+            <p>Ефектом Доплера називається зміна частоти хвиль, яка реєструється приймачем, що відбувається внаслідок руху джерела цих хвиль або приймача. Наприклад, при наближенні до нерухомого спостерігача автомобіля, що швидко рухається, гучність звукового сигналу мотора буде здаватися вищою ніж, гучність сигналу, що подається тим самим автомобілем, коли він стоїть нерухомий. Також буде здаватись гучність нижчою, якщо автомобіль віддаляється від спостерігача. Наочно проілюструвати ефект Доплера можна за допомогою найпростішого прикладу, представленого на наступному рисунку:</p>
+
+            <img src="public/img/dopler.png" alt="Демонстрація ефекту Доплера" width="100%">
+            <p class="image-label text-center"><i>Демонстрація ефекту Доплера</i></p>
+
+            <h2>Вимірювання ефукту Доплера</h2>
+            <p>Використовуючи вбудований динамік пристрою, згенеруємо <a href="https://uk.wikipedia.org/wiki/Звук#.D0.A7.D0.B0.D1.81.D1.82.D0.BE.D1.82.D0.B0">звук з частотою</a> ~20 кГц. Зазвичай звук такої частоти нечутний звичайній людині. Використовуючи існуючий мікрофон на цьому ж пристрої, будемо отримувати звук та аналізувати його частоту. Під час здійснення руху рукою в межах випромінюваної звукової хвилі, ми викличемо зсув частоти звукової хвилі, який описує ефект Доплера.</p>
+
+            <canvas id="spectrum" width="700" height="100"></canvas>
+            <p class="canvas-label text-center"><i>Частота отриманого звуку з мікрофонів в діапазоні 0-22 кГц</i></p>
+
+            <canvas id="spectrum-zoom" width="700" height="100"></canvas>
+            <p class="canvas-label text-center"><i>Частота отриманого звуку з мікрофонів в діапазоні 18-22 кГц</i></p>
+
+            <p>Спробуйте перемістити руку до мікрофонних / комп'ютера, щоб побачити зміщення в напрямку вищих частот, і віддалити від комп'ютера, щоб побачити зміщення в напрямку низьких частот.</p>
+
+            <h2>Використання DefMove в якості ядра для реалізації безконтактного керування веб-сайтом</h2>
+
+            <p>Впровадження програмного продукту може відбуватися в різних середовищах та для вирішення різних завдань, які працюють на мові програмування JavaScript та виконуються у веб-браузері. Даний програмний засіб забезпечує систему для реалізації безконтактного керування на різноманітних веб-сайтах.</p>
+
+            <p>Умови використання програмного коду, як ядра, можливі, якщо вирішити додаткові задачі:</p>
+            <ul>
+              <li>реалізувати функції для керування ресурсом в результаті появи певного руху (в іншому випадку рухи будуть використовуватися для прокрутки сторінки сайту);</li>
+              <li>реалізувати можливість корегувати частоту звукової хвилі (по замовчуванню генерований звук матиме частоту в ~20 кГц).</li>
+            </ul>
+
+            <p>Наведемо декілька варіантів використання DefMove.</p>
+
+            <!-- <h2>DefMove для керування галереєю</h2>
+            <p>Програмний засіб DefMove дозволяє визначати два типи рухів: "Вниз" та "Вгору". Визначавши рух "Вниз" перемиканням картинки слайда на наступний, а рух "Вгору" – на попередній, можна отримати зручний інтерфейс для керування галереєю на вашому сайті.</p>
+
+            <p>Для демонстрації даного прикладу визначте, у налаштуваннях DefMove, дію на рух – як "керування галереєю" та увімкніть безконтактне керування.</p>
+
+            <div class="c-gallery js-gallery">
+                <div class="c-slide" style="background: url(public/img/1.jpg)"></div>
+                <div class="c-slide" style="background: url(public/img/2.jpg)"></div>
+                <div class="c-slide" style="background: url(public/img/3.jpg)"></div>
+                <div class="c-slide" style="background: url(public/img/4.jpg)"></div>
+            </div>
+            <p class="galary-label text-center"><i>Галерейка з безконтактним перемиканням слайдів</i></p>
+ -->
+            <h2>Керування об'єктом</h2>
+            <p>Також програма DefMove має можливість визначати функції зворотнього виклику, які будуть спрацьовувати при кожному замірі частоти. В функції передаватимуться параметри відхилень частот від норми. Використовуючи дані можливості можна реалізувати динамічну зміну параметрів DOM-елемента, або певного графічного об'єкта. Розглянемо дану реалізацію на основі динамічного керування розмірами прямокутника.</p>
+
+            <canvas id="ball"></canvas>
+            <p class="canvas-label text-center"><i>Демонстрація керування графічним об'єктом</i></p>
         </div>
-      </div>
+        <div class="c-sidebar">
+            <h3 class="mb-lg text-center">Налаштування DefMove</h3>
 
-      <div>
-        <p>spectrum-zoom</p>
-        <canvas id="spectrum-zoom" width="700" height="100"></canvas>
-        <div id="spectrum-zoom-axes">
-          <span class="left-axis">19 kHz</span> <span class="right-axis">21 kHz</span>
+            <div class="checkbox-container mb-lg">
+                <h4>Визначення дії на рух</h4>
+
+                <div class="checkbox">
+                    <label>
+                        <input id="action-scroll" type="checkbox" data-action="scroll" checked="checked"> прокрутка сторінки
+                    </label>
+                </div>
+                <!-- <div class="checkbox">
+                    <label>
+                        <input id="action-galary" type="checkbox" data-action="galary"> керування галереєю
+                    </label>
+                </div> -->
+                <div class="checkbox">
+                    <label>
+                        <input id="action-box" type="checkbox" data-action="box"> керування прямокутником
+                    </label>
+                </div>
+            </div>
+
+            <div class="mb-lg">
+                <h4>Частота звуку</h4>
+
+                <span class="frequency-label mr-sm">18 кГЦ</span>
+
+                <input id="frequency" data-slider-id='ex1Slider' type="text" data-slider-min="18" data-slider-max="20" data-slider-step="0.1" data-slider-value="20"/>
+
+                <span class="frequency-label ml-sm">20 кГЦ</span>
+            </div>
+
+
+
+            <button class="btn btn-success power" id="on" data-action="on">Ввімкнути</button>
+            <button class="btn btn-danger power" id="off" data-action="off" disabled>Вимкнути</button>
         </div>
-      </div>
-    </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script type="text/javascript" src="public/js/bootstrap-slider.min.js"></script>
+        <script type="text/javascript" src="public/js/slick.min.js"></script>
+        <script type="text/javascript" src="public/js/app.js"></script>
+        <script type="text/javascript" src="public/js/defmove.js"></script>
 
-    <script src="public/js/script.js"></script>
+        <script type="text/javascript">
 
-    <script>
-      window.addEventListener('load', function(e) {
-        document.getElementById('btn-activate').addEventListener('click', function(e) {
-          var self = this;
-
-          navigator.getUserMedia_ = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
-          navigator.getUserMedia_({ audio: { optional: [{ echoCancellation: false }] } }, function(stream) {
-            handleMic(stream, readMic);
-            showAxes();
-
-            // Self-destruct!
-            self.parentNode.removeChild(self);
-          }, function() { console.log('Error!') });
-        });
-      });
-    </script>
-  </body>
+        </script>
+    </body>
 </html>

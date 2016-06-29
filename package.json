@@ -2,7 +2,7 @@
   "name": "defmove",
   "version": "1.0.0",
   "description": "",
-  "main": "doppler.js",
+  "main": "defmove.js",
   "dependencies": {
     "babel": "^6.5.2",
     "babel-cli": "^6.9.0",

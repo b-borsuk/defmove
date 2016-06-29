@@ -18,6 +18,8 @@ export default class {
 
         this.audioCtx = new AudioContext();
         this.oscillator = this.audioCtx.createOscillator();
+        this.analyser = this.audioCtx.createAnalyser();
+
         this.freq = 20000;
         this.relevantFreqWindow = 33;
         this.nyquist = this.audioCtx.sampleRate / 2;
@@ -27,12 +29,14 @@ export default class {
         this.callbacks = callbacks;
     }
 
-    pushToCallbacks(...args) {
-        callbacks.each((callback) => callback(args));
+    pushToCallbacks(args) {
+        if (this.callbacks.length > 0) {
+            this.callbacks.forEach((callback) => callback(args));
+        }
     }
 
-    getBandwidth (analyser, freqs) {
-        const primaryTone = this.freqToIndex(analyser, this.freq),
+    getBandwidth (freqs) {
+        const primaryTone = this.freqToIndex(this.freq),
               primaryVolume = freqs[primaryTone],
               maxVolumeRatio = 0.001;
 
@@ -58,29 +62,29 @@ export default class {
             right: rightBandwidth
         };
     }
-    
-    freqToIndex (analyser, freq) {
+
+    freqToIndex (freq) {
         return Math.round(
-            freq / this.nyquist * analyser.fftSize / 2
+            freq / this.nyquist * this.analyser.fftSize / 2
         );
     }
-    
-    indexToFreq (analyser, index) {
-        return this.nyquist / (analyser.fftSize / 2) * index;
+
+    indexToFreq (index) {
+        return this.nyquist / (this.analyser.fftSize / 2) * index;
     }
-    
-    optimizeFrequency (oscillator, analyser, freqSweepStart, freqSweepEnd) {
+
+    optimizeFrequency (oscillator, freqSweepStart, freqSweepEnd) {
         let oldFreq = oscillator.frequency.value,
-            audioData = new Uint8Array(analyser.frequencyBinCount),
+            audioData = new Uint8Array(this.analyser.frequencyBinCount),
             maxAmp = 0,
             maxAmpIndex = 0,
-            from = this.freqToIndex(analyser, freqSweepStart),
-            to   = this.freqToIndex(analyser, freqSweepEnd);
-    
+            from = this.freqToIndex(freqSweepStart),
+            to   = this.freqToIndex(freqSweepEnd);
+
         for (var i = from; i < to; i++) {
-            oscillator.frequency.value = this.indexToFreq(analyser, i);
-            analyser.getByteFrequencyData(audioData);
-    
+            oscillator.frequency.value = this.indexToFreq(i);
+            this.analyser.getByteFrequencyData(audioData);
+
             if (audioData[i] > maxAmp) {
                 maxAmp = audioData[i];
                 maxAmpIndex = i;
@@ -92,84 +96,79 @@ export default class {
             return oldFreq;
         }
         else {
-            return this.indexToFreq(analyser, maxAmpIndex);
+            return this.indexToFreq(maxAmpIndex);
         }
     }
-    
-    readMic (analyser, userCallback) {
-        let audioData = new Uint8Array(analyser.frequencyBinCount);
 
-        analyser.getByteFrequencyData(audioData);
+    readMic (userCallback) {
+        let audioData = new Uint8Array(this.analyser.frequencyBinCount);
 
-        let primaryTone = this.freqToIndex(analyser, this.freq);
+        this.analyser.getByteFrequencyData(audioData);
+
+        let primaryTone = this.freqToIndex(this.freq);
+
+        let analyser = this.analyser;
 
         this.pushToCallbacks({
             type: 'TYPE_1',
             payload: {
                 primaryTone: primaryTone,
-                index: this.freqToIndex(analyser, 22000),
+                index: this.freqToIndex(22000),
+                to: primaryTone + this.relevantFreqWindow,
+                from: primaryTone - this.relevantFreqWindow,
                 analyser,
                 audioData
             }
         });
+
+        var band = this.getBandwidth(audioData);
+        userCallback(band);
 
         this.pushToCallbacks({
             type: 'TYPE_2',
             payload: {
-                primaryTone: primaryTone,
-                to: primaryTone - this.relevantFreqWindow,
-                from: primaryTone + this.relevantFreqWindow,
-                analyser,
-                audioData
+                band,
             }
         });
-        
-        let band = this.getBandwidth(analyser, audioData);
-        userCallback(band);
 
-        this.pushToCallbacks({
-            type: 'TYPE_3',
-            payload: {
-                bandDiff: band[0] - band[1]
-            }
-        });
-    
-        this.readMicInterval = requestAnimationFrame(this.readMic.bind(this, analyser, userCallback));
-    
+        this.readMicInterval = requestAnimationFrame(this.readMic.bind(this, userCallback));
+
         return this.readMicInterval;
     }
-    
+
     handleMic (stream, callback, userCallback) {
-    
-        let mic = this.audioCtx.createMediaStreamSource(stream),
-            analyser = this.audioCtx.createAnalyser();
-    
-        analyser.smoothingTimeConstant = 0.5;
-        analyser.fftSize = 2048;
-    
-        mic.connect(analyser);
-    
+
+        let mic = this.audioCtx.createMediaStreamSource(stream);
+        this.stream = stream;
+        this.mic = mic;
+
+        this.analyser.smoothingTimeConstant = 0.5;
+        this.analyser.fftSize = 2048;
+
+        mic.connect(this.analyser);
+
         // Doppler tone
         this.oscillator.frequency.value = this.freq;
         this.oscillator.type = this.oscillator.SINE;
         this.oscillator.start(0);
         this.oscillator.connect(this.audioCtx.destination);
-    
+
         // There seems to be some initial "warm-up" period
         // where all frequencies are significantly louder.
         // A quick timeout will hopefully decrease that bias effect.
         setTimeout(() => {
             // Optimize doppler tone
-            let freq = this.optimizeFrequency(this.oscillator, analyser, 19000, 22000);
-    
+            let freq = this.optimizeFrequency(this.oscillator, 19000, 22000);
+
             this.oscillator.frequency.value = freq;
-    
-            callback(analyser, userCallback);
+            this.freq = freq;
+
+            callback(userCallback);
         });
     }
-    
+
     init(callback) {
-    
+
         let options = {
             audio: {
                 optional: [
@@ -179,14 +178,34 @@ export default class {
                 ]
             }
         };
-    
-        navigator.mediaDevices
-            .getUserMedia(options)
-            .then((stream) => this.handleMic(stream, this.readMic.bind(this), callback))
-            .catch(() => console.log('Error!'));
+
+        try {
+            navigator.mediaDevices.getUserMedia(options)
+                .then((stream) => this.handleMic(stream, this.readMic.bind(this), callback))
+                .catch(() => console.log('Error!'));
+        } catch (e) {
+            alert('Нажаль Ваш браузер не підтримує роботу з динаміком та мікрофонами.');
+            this.stop();
+            throw e;
+        }
     }
-    
+
+    setFrequency(frequency) {
+        if (frequency >= 18000 && frequency <= 20000) {
+            this.freq = frequency;
+            this.oscillator.frequency.value = frequency;
+        }
+    }
+
+    getFrequency() {
+        return this.freq;
+    }
+
     stop() {
+        this.stream.getAudioTracks()[0].stop();
+        this.stream.removeTrack(this.stream.getAudioTracks()[0]);
+        this.mic.disconnect();
+        this.oscillator.disconnect();
         cancelAnimationFrame(this.readMicInterval);
     }
 }
